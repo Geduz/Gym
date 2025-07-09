@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model rol {
+  rol_id   Int       @id @default(autoincrement())
+  nombre   RoleType  @unique
+  usuarios usuario[]
+}
+
+model usuario {
+  usuario_id       Int          @id @default(autoincrement())
+  nombre           String
+  apellido         String
+  dni              String?      @db.VarChar(10)
+  telefono         String?      @db.VarChar(20)
+  fecha_nacimiento DateTime?
+  correo           String       @unique @db.VarChar(100)
+  contrasena       String
+  direccion        String?
+  ciudad           String?
+  codigo_postal    String?
+  rol_id           Int
+  fecha_registro   DateTime?
+  estado           Boolean
+  miembro          Boolean
+  asistencia_id    Int?
+  imagen           String?
+  entrenador_id    Int?
+  entrenador       entrenador?  @relation(fields: [entrenador_id], references: [entrenador_id])
+  membresias       membresia[]
+  rol              rol          @relation(fields: [rol_id], references: [rol_id])
+  ventas           venta[]
+  asistencia       asistencia[]
+}
+
+model entrenador {
+  entrenador_id        Int               @id @default(autoincrement())
+  nombre               String
+  apellido             String
+  correo               String            @unique
+  descripcion          String
+  experiencia          Int
+  especialidad         String[]
+  precio               Int
+  estado_entrenador_id Int
+  imagen               String?
+  creado_en            DateTime          @default(now())
+  actualizado_en       DateTime          @updatedAt
+  usuario              usuario[]
+  estado               estado_entrenador @relation(fields: [estado_entrenador_id], references: [estado_entrenador_id])
+}
+
+model asistencia {
+  asistencia_id Int      @id @default(autoincrement())
+  usuario_id    Int
+  fecha         DateTime
+  hora_entrada  DateTime
+  hora_salida   DateTime
+  usuario       usuario  @relation(fields: [usuario_id], references: [usuario_id])
+}
+
+model producto {
+  producto_id    Int                @id @default(autoincrement())
+  descripcion    String
+  precio         Int
+  stock          Int
+  estado         Boolean
+  categoriaId    Int
+  nombre         String
+  imagen         String
+  detalle_ventas detalle_venta[]
+  categoria      categoria_producto @relation(fields: [categoriaId], references: [categoria_id])
+}
+
+model categoria_producto {
+  categoria_id Int            @id @default(autoincrement())
+  nombre       categoriasType @unique
+  producto     producto[]
+}
+
+model venta {
+  venta_id    Int             @id @default(autoincrement())
+  fecha_venta DateTime
+  total       Int
+  usuario_id  Int
+  detalles    detalle_venta[]
+  usuario     usuario         @relation(fields: [usuario_id], references: [usuario_id])
+}
+
+model detalle_venta {
+  detalle_venta_id  Int             @id @default(autoincrement())
+  venta_id          Int
+  producto_id       Int?
+  plan_membresia_id Int?
+  cantidad          Int
+  precio_unitario   Int
+  subtotal          Int
+  metodo_pago_id    Int
+  estado_pago_id    Int
+  telefono          String
+  direccion         String?
+  ciudad            String?
+  codigo_postal     String?
+  plan_membresia    plan_membresia? @relation(fields: [plan_membresia_id], references: [plan_membresia_id])
+  estado_pago       estado_pago     @relation(fields: [estado_pago_id], references: [estado_pago_id])
+  metodo_pago       metodo_pago     @relation(fields: [metodo_pago_id], references: [metodo_pago_id])
+  producto          producto?       @relation(fields: [producto_id], references: [producto_id])
+  venta             venta           @relation(fields: [venta_id], references: [venta_id])
+}
+
+model membresia {
+  membresia_id      Int             @id @default(autoincrement())
+  usuario_id        Int
+  fecha_inicio      DateTime
+  fecha_fin         DateTime
+  duracion          Int
+  estado            Boolean
+  plan_membresia_id Int
+  usuario           usuario         @relation(fields: [usuario_id], references: [usuario_id])
+  plan_membresia    plan_membresia? @relation(fields: [plan_membresia_id], references: [plan_membresia_id])
+}
+
+model plan_membresia {
+  plan_membresia_id Int             @id @default(autoincrement())
+  nombre            String
+  precio            Int
+  descripcion       String[]
+  membresias        membresia[]
+  detalle_venta     detalle_venta[]
+}
+
+model metodo_pago {
+  metodo_pago_id Int             @id @default(autoincrement())
+  nombre         MetodoPagoType  @unique
+  detalle_venta  detalle_venta[]
+}
+
+model estado_pago {
+  estado_pago_id Int             @id @default(autoincrement())
+  nombre         EstadoPagoType
+  detalle_venta  detalle_venta[]
+}
+
+model estado_entrenador {
+  estado_entrenador_id Int                    @id @default(autoincrement())
+  nombre               EstadoEntrenadoresType
+  Entrenador           entrenador[]
+}
+
+enum RoleType {
+  Administrador
+  Recepcionista
+  Cliente
+  Entrenador
+}
+
+enum categoriasType {
+  Suplementos
+  Ropa
+  Accesorios
+}
+
+enum MetodoPagoType {
+  Tarjeta_de_credito_debito
+  Paypal
+  Contra_Entrega
+}
+
+enum EstadoPagoType {
+  Pendiente
+  Pagado
+  Cancelado
+}
+
+enum EstadoEntrenadoresType {
+  Activo
+  Inactivo
+  Vacaciones
+}
